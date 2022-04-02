@@ -1,0 +1,11 @@
+<div class="modal-header">
+    <h1 class="modal-title">Estado de su semestre</h1>
+    <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <h3> Promedio: {{Promedio}}</h3>
+    <h3>{{Promedio >=3 ? 'Semetre aprobado': 'Semestre reprobado'}}</h3>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="activeModal.close('Close click')">Cerrar</button>
+  </div>
