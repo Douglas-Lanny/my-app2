@@ -1,9 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalPromedioComponent } from './modal-promedio/modal-promedio.component';
 
+const minimoCreditos: ValidatorFn = (form: AbstractControl): ValidationErrors | null => {
+  // se toma los creditos por materia
+  const creditosPorMateria = (form.value as any[]).map(materia => +materia.creditos);
+  // se hace la sumatoria de los creditos
+  const totalCreditos = creditosPorMateria.reduce(((accumulator, curr) => accumulator + curr), 0);
 
+  return totalCreditos > 0 && totalCreditos < 8 ? { minimoCreditos: true } : null;
+}
+
+const maximoCreditos: ValidatorFn = (form: AbstractControl): ValidationErrors | null => {
+  // se toma los creditos por materia
+  const creditosPorMateria = (form.value as any[]).map(materia => +materia.creditos);
+  // se hace la sumatoria de los creditos
+  const totalCreditos = creditosPorMateria.reduce(((accumulator, curr) => accumulator + curr), 0);
+
+  return totalCreditos > 24 ? { maximoCreditos: true } : null;
+}
 
 
 @Component({
@@ -15,8 +31,11 @@ export class AppComponent implements OnInit {
 
   // modelo dinamico del formulario
   form = this.fb.group({
-    materias: this.fb.array([])
+    materias: this.fb.array([], [minimoCreditos, maximoCreditos])
   });
+
+  // Posibles creditos.
+  itemsCredito = [0, 1, 2, 3, 4, 5];
 
   constructor(private fb: FormBuilder, private readonly modal: NgbModal,) {
 
@@ -48,19 +67,27 @@ export class AppComponent implements OnInit {
 
 
 
-  obtenerPromedio(){
+  obtenerPromedio() {
     const notas = this.form.get('materias')?.value;
-    const totalNotas = notas.length;
-
     let sumaNotas = 0;
-
-    for(var i=0; i< notas.length; i++){
-
-      sumaNotas = sumaNotas + notas[i].nota*notas[i].creditos
+    let totalCreditos = 0;
+    for (var i = 0; i < notas.length; i++) {
+      sumaNotas = sumaNotas + notas[i].nota * notas[i].creditos;
+      totalCreditos = totalCreditos + notas[i].creditos;
     }
-   
     const modalRef = this.modal.open(ModalPromedioComponent, { backdrop: 'static', size: 'lg' });
-    modalRef.componentInstance.Promedio = sumaNotas/100;
+    modalRef.componentInstance.Promedio = (sumaNotas / totalCreditos).toFixed(1);
+  }
+
+
+  get invalidRegistro() {
+    for (let i = 0; i < this.materias.length; i++) {
+      if ((this.form.get('materias') as FormArray).at(i).invalid) {
+
+        return true
+      }
+    }
+    return false;
   }
 
 
